@@ -4,8 +4,9 @@ import by.varyvoda.ademis.app.desktop.util.rx.DisposeSubject
 
 interface Disposable {
 
-   fun disposer(): DisposeSubject
+   val disposer: DisposeSubject
 
+   fun dispose() {
+      disposer.emit()
+   }
 }
-
-fun Disposable.dispose() = disposer().emit()

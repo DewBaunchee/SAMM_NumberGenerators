@@ -2,12 +2,15 @@ package by.varyvoda.ademis.app.desktop.util.rx
 
 import by.varyvoda.ademis.app.desktop.util.collections.Quadruple
 import by.varyvoda.ademis.app.desktop.util.collections.Quintuple
+import javafx.beans.property.ReadOnlyIntegerProperty
 import javafx.beans.property.ReadOnlyProperty
+import javafx.collections.FXCollections
 import javafx.collections.ListChangeListener
 import javafx.collections.ObservableList
 import rx.Observable
 import rx.Observable.just
 import rx.subjects.BehaviorSubject
+import rx.subjects.ReplaySubject
 import tornadofx.*
 
 fun <V> ReadOnlyProperty<V>.toRx(): Observable<V> {
@@ -18,20 +21,35 @@ fun <V> ReadOnlyProperty<V>.toRx(): Observable<V> {
     return subject.asObservable()
 }
 
+data class RxChange<V>(val prev: V, val new: V)
+
+fun <V> ReadOnlyProperty<V>.toRxChange(): Observable<RxChange<V>> {
+    val subject = ReplaySubject.create<RxChange<V>>(1)
+    val listener = ChangeListener<V> { _, prev, new -> subject.onNext(RxChange(prev, new)) }
+    addListener(listener)
+    subject.doOnCompleted { removeListener(listener) }
+    return subject.asObservable()
+}
+
+fun  ReadOnlyIntegerProperty.toRxChange(): Observable<RxChange<Int>> {
+    val subject = ReplaySubject.create<RxChange<Int>>(1)
+    val listener = ChangeListener<Number> { _, prev, new -> subject.onNext(RxChange(prev.toInt(), new.toInt())) }
+    addListener(listener)
+    subject.doOnCompleted { removeListener(listener) }
+    return subject.asObservable()
+}
+
+
 @Suppress("UNCHECKED_CAST")
 fun <V> ObservableList<V>.toRx(): Observable<ListChangeListener.Change<V>> {
-    val firstChangeMessage = "First change!"
-    val subject = BehaviorSubject.create<ListChangeListener.Change<V>>(
-        object : ListChangeListener.Change<V>(this) {
-            override fun next(): Boolean = throw NotImplementedError(firstChangeMessage)
-            override fun reset(): Unit = throw NotImplementedError(firstChangeMessage)
-            override fun getFrom(): Int = throw NotImplementedError(firstChangeMessage)
-            override fun getTo(): Int = throw NotImplementedError(firstChangeMessage)
-            override fun getRemoved(): MutableList<V> = throw NotImplementedError(firstChangeMessage)
-            override fun getPermutation(): IntArray = throw NotImplementedError(firstChangeMessage)
-        }
-    )
-    val listener = ListChangeListener<V> { change -> subject.onNext(change as ListChangeListener.Change<V>?) }
+    val subject = ReplaySubject.create<ListChangeListener.Change<V>>(1)
+    val listener = ListChangeListener<V> { change -> subject.onNext(change as ListChangeListener.Change<V>) }
+
+    val list = FXCollections.observableArrayList<V>()
+    list.addListener(listener)
+    list.addAll(this)
+    list.removeListener(listener)
+
     addListener(listener)
     subject.doOnCompleted { removeListener(listener) }
     return subject.asObservable()

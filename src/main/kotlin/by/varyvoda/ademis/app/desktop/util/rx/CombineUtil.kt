@@ -45,3 +45,7 @@ fun <A, B, C, D, E> combineLatest(
     Observable.combineLatest(listOf(first, second, third, fourth, fifth)) { args ->
         Quintuple(args[0] as A, args[1] as B, args[2] as C, args[3] as D, args[4] as E)
     }
+
+@Suppress("UNCHECKED_CAST")
+fun <V, C : Iterable<Observable<V>>> combineLatest(collection: C): Observable<List<V>> =
+    Observable.combineLatest(collection) { args -> args.map { it as V } }
