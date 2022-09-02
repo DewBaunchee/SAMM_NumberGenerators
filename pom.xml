@@ -9,7 +9,7 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <kotlin.version>1.6.10</kotlin.version>
+        <kotlin.version>1.7.10</kotlin.version>
         <tornado.version>1.7.20</tornado.version>
         <spring.boot.version>2.6.3</spring.boot.version>
         <javafx.version>11.0.2</javafx.version>

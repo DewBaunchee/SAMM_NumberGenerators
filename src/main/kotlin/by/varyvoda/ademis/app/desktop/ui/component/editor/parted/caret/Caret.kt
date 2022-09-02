@@ -1,20 +1,21 @@
 package by.varyvoda.ademis.app.desktop.ui.component.editor.parted.caret
 
-import by.varyvoda.ademis.app.desktop.ui.component.editor.parted.PartedTextEditor
+import by.varyvoda.ademis.app.desktop.ui.component.common.Disposable
+import by.varyvoda.ademis.app.desktop.ui.component.editor.parted.part.EditorPart
+import by.varyvoda.ademis.app.desktop.ui.component.editor.parted.position.EditorPosition
 import by.varyvoda.ademis.app.desktop.util.rx.DisposeSubject
 import by.varyvoda.ademis.app.desktop.util.rx.mergeToPair
 import by.varyvoda.ademis.app.desktop.util.rx.toRx
 import javafx.beans.property.SimpleObjectProperty
 import javafx.scene.shape.Rectangle
 import rx.subjects.BehaviorSubject
-import tornadofx.add
 import tornadofx.c
 import tornadofx.getValue
 import tornadofx.setValue
 import java.util.*
 import kotlin.math.min
 
-class Caret(startPosition: PartedTextEditor.Position) : Rectangle() {
+class Caret(startPosition: EditorPosition) : Rectangle(), Disposable {
 
     companion object {
 
@@ -34,12 +35,12 @@ class Caret(startPosition: PartedTextEditor.Position) : Rectangle() {
 
     private var blinking: Int = 3
 
-    private val destroy = DisposeSubject.create()
+    override val disposer = DisposeSubject.create()
 
     init {
         fill = c("#000")
         visibleTick
-            .takeUntil(destroy)
+            .takeUntil(disposer)
             .filter {
                 if (blinking == 0) return@filter true
                 blinking--
@@ -47,35 +48,40 @@ class Caret(startPosition: PartedTextEditor.Position) : Rectangle() {
             }
             .subscribe { isVisible = it }
 
-        position.part().add(this)
-        positionProperty.toRx()
+        y = 0.0
+        width = 2.0
+        positionProperty.toRx(disposer)
             .switchMap { it.inlinePosition() }
             .mergeToPair { it.part.symbolBounds(it.inPartPosition) }
-            .takeUntil(destroy)
+            .takeUntil(disposer)
             .subscribe { (position, bounds) ->
-                width = 2.0
                 height = bounds.height
-
                 x = bounds.minX
-                y = 0.0
-
-                position.part.add(this)
+                val t = this
+                if(parent !== position.part) {
+                    remove()
+                    position.part.children.add(this)
+                }
             }
     }
 
-    fun dispose() {
-        destroy.emit()
-        position.part().children.remove(this)
+    override fun dispose() {
+        super.dispose()
+        remove()
+    }
+
+    fun remove() {
+        (parent as EditorPart?)?.children?.remove(this)
     }
 
     fun up() {
         skipBlinking()
         move {
             if (line.prev == null) {
-                return@move PartedTextEditor.Position(line, 0)
+                return@move EditorPosition(line, 0)
             }
 
-            return@move PartedTextEditor.Position(line.prev!!, column)
+            return@move EditorPosition(line.prev!!, column)
         }
     }
 
@@ -83,14 +89,14 @@ class Caret(startPosition: PartedTextEditor.Position) : Rectangle() {
         skipBlinking()
         move {
             if (line.next == null) {
-                return@move PartedTextEditor.Position(line, line.end.getLength() - 1)
+                return@move EditorPosition(line, line.end().getLength() - 1)
             }
 
-            return@move PartedTextEditor.Position(line.next!!, column)
+            return@move EditorPosition(line.next!!, column)
         }
     }
 
-    fun move(moving: PartedTextEditor.Position.() -> PartedTextEditor.Position) {
+    fun move(moving: EditorPosition.() -> EditorPosition) {
         skipBlinking()
         position = position.transform(moving)
     }
@@ -129,7 +135,7 @@ class Caret(startPosition: PartedTextEditor.Position) : Rectangle() {
                 }
                 newSymbolPosition += d
             }
-            return@transform PartedTextEditor.Position(newLine, newSymbolPosition)
+            return@transform EditorPosition(newLine, newSymbolPosition)
         }
     }
 

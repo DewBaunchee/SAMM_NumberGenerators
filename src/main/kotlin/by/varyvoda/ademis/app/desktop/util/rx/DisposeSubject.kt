@@ -20,4 +20,7 @@ class DisposeSubject private constructor(internalSubject: PublishSubject<Nothing
         _internal.onCompleted()
     }
 
+    fun once(): Observable<Nothing?> {
+        return take(1)
+    }
 }
