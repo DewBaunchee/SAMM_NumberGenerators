@@ -8,9 +8,7 @@ import kotlin.math.sqrt
 class Gaussian : Method() {
 
     private val n = NumberInput("n", 6, 12)
-
     private val mx = NumberInput("mx", 0, 100000)
-
     private val sigma = NumberInput("σx", 0, 100000)
 
     override val specificParameters: List<NumberInput> = listOf(n, mx, sigma)

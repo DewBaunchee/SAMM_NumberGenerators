@@ -1,9 +1,6 @@
 package by.varyvoda.lab2.ui.view
 
-import by.varyvoda.lab2.domain.methods.Exponential
-import by.varyvoda.lab2.domain.methods.Gaussian
-import by.varyvoda.lab2.domain.methods.Lemer
-import by.varyvoda.lab2.domain.methods.Method
+import by.varyvoda.lab2.domain.methods.*
 import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventHandler
 import javafx.geometry.Pos
@@ -22,12 +19,10 @@ class Lab2View : View("Lab2") {
 
     override fun onDock() {
         super.onDock()
-//        primaryStage.width = 800.0
-//        primaryStage.height = 700.0
         primaryStage.isMaximized = true
     }
 
-    private val methods = listOf(Lemer(), Gaussian(), Exponential())
+    private val methods = listOf(Lemer(), Gaussian(), Exponential(), Gamma(), Triangle(), Simpson())
 
     private val activeMethod = SimpleObjectProperty<Method>()
 

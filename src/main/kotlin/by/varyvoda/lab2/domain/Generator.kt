@@ -21,4 +21,8 @@ interface Generator {
     fun batch(n: Int): List<Double> {
         return IntStream.range(0, n).mapToObj { next() }.toList()
     }
+
+    fun pair(): Pair<Double, Double> {
+        return next() to next()
+    }
 }

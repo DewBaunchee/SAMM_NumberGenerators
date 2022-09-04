@@ -67,3 +67,11 @@ fun calculatePeriods(generator: Generator): Pair<Int?, Int?> {
     }
     return p to if (i3 == null || p == null) null else (i3!! + p)
 }
+
+fun Iterable<Double>.mul(): Double {
+    var mul = 1.0
+    for (element in this) {
+        mul *= element
+    }
+    return mul
+}
