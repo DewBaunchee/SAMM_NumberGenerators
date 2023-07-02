@@ -1,13 +1,14 @@
-package by.varyvoda.lab2.domain
+package by.varyvoda.numbergenerators.domain
 
-import by.varyvoda.lab2.domain.methods.Method
+import by.varyvoda.numbergenerators.domain.methods.Method
 import java.util.stream.IntStream
 import java.util.stream.Stream
+import kotlin.math.pow
 
 fun calculateIntervals(values: List<Double>): List<Method.Interval> {
     val minMax = values.stream().mapToDouble { it }.summaryStatistics()
     val varietyRange = minMax.max - minMax.min
-    val intervalCount = 9
+    val intervalCount = 40
     val intervalLength = varietyRange / intervalCount
     if (intervalLength == 0.0) return emptyList()
 
@@ -66,6 +67,15 @@ fun calculatePeriods(generator: Generator): Pair<Int?, Int?> {
             }
     }
     return p to if (i3 == null || p == null) null else (i3!! + p)
+}
+
+fun calculatePairCheck(generator: Generator): Double {
+    val n = 1000
+    val k = IntStream.range(0, n)
+        .mapToObj { generator.pair() }
+        .filter { it.first.pow(2) + it.second.pow(2) < 1 }
+        .count()
+    return k.toDouble() / n
 }
 
 fun Iterable<Double>.mul(): Double {

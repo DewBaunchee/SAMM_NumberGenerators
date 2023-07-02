@@ -1,4 +1,4 @@
-package by.varyvoda.lab2.domain
+package by.varyvoda.numbergenerators.domain
 
 import java.util.stream.IntStream
 import kotlin.math.sqrt

@@ -1,6 +1,6 @@
-package by.varyvoda.lab2.ui.view
+package by.varyvoda.numbergenerators.ui.view
 
-import by.varyvoda.lab2.domain.methods.*
+import by.varyvoda.numbergenerators.domain.methods.*
 import javafx.beans.property.SimpleObjectProperty
 import javafx.event.EventHandler
 import javafx.geometry.Pos
@@ -13,16 +13,17 @@ import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Priority
+import javafx.scene.layout.VBox
 import tornadofx.*
 
-class Lab2View : View("Lab2") {
+class NumberGeneratorsView : View("Lab2") {
 
     override fun onDock() {
         super.onDock()
         primaryStage.isMaximized = true
     }
 
-    private val methods = listOf(Lemer(), Gaussian(), Exponential(), Gamma(), Triangle(), Simpson())
+    private val methods = listOf(Lemer(), Equality(), Gaussian(), Exponential(), Gamma(), Triangle(), Simpson())
 
     private val activeMethod = SimpleObjectProperty<Method>()
 
@@ -30,7 +31,7 @@ class Lab2View : View("Lab2") {
 
     private lateinit var indicator: ProgressIndicator
 
-    private lateinit var parametersBox: HBox
+    private lateinit var parametersBox: VBox
 
     private lateinit var mathField: TextField
 
@@ -48,6 +49,8 @@ class Lab2View : View("Lab2") {
 
     private lateinit var lField: TextField
 
+    private lateinit var pairCheckField: TextField
+
     override val root = hbox {
 
         addEventFilter(KeyEvent.KEY_PRESSED) { event ->
@@ -56,6 +59,9 @@ class Lab2View : View("Lab2") {
                 run()
             } else if (event.code == KeyCode.R && event.isShiftDown) {
                 activeMethod.get().random()
+                run()
+            }else if (event.code == KeyCode.B && event.isShiftDown) {
+                activeMethod.get().best()
                 run()
             }
         }
@@ -82,8 +88,12 @@ class Lab2View : View("Lab2") {
             activeMethod.addListener { _, _, method ->
                 children.clear()
                 if (method == null) return@addListener
-                parametersBox = hbox {
-                    children.setAll(method.parameters().onEach { it.hgrow = Priority.ALWAYS })
+                parametersBox = vbox {
+                    method.parameters().forEach { line ->
+                        hbox {
+                            children.setAll(line.onEach { it.hgrow = Priority.ALWAYS })
+                        }
+                    }
                 }
                 hbox {
                     vgrow = Priority.ALWAYS
@@ -113,6 +123,7 @@ class Lab2View : View("Lab2") {
                     hbox {
                         pField = createOutField(this, "P")
                         lField = createOutField(this, "L")
+                        pairCheckField = createOutField(this, "(0.78539) π/4 <- ")
                     }
                 }
             }
@@ -135,9 +146,14 @@ class Lab2View : View("Lab2") {
 
         pField.text = result.p?.toString() ?: "-"
         lField.text = result.l?.toString() ?: "-"
+        pairCheckField.text = result.pairCheck.toString()
         series.data.setAll(result.intervals.map { XYChart.Data(it.range, it.frequency) })
-
+        // 6524 5752 60289
         indicator.isVisible = false
+
+        if(result.p != null && result.p > 50000) {
+            print("")
+        }
     }
 
     private fun openMethod(method: Method) {
